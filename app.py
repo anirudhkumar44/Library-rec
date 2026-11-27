@@ -16,7 +16,6 @@ st.set_page_config(
 # Step 2: Combine title, author, genre, and description into searchable text.
 book_text = [
     f"{book['title']} {book['author']} {book['genre']} {book['description']}"
-    for book in books
 ]
 
 # Step 3: Fit TF-IDF on the book catalogue.
