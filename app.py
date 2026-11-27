@@ -13,11 +13,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Step 2: Combine title, author, genre, and description into searchable text.
-book_text = [
-    f"{book['title']} {book['author']} {book['genre']} {book['description']}"
-]
-
 # Step 3: Fit TF-IDF on the book catalogue.
 vectorizer = TfidfVectorizer(
     stop_words="english",
