@@ -1,87 +1,188 @@
-import streamlit as st
+
+# Problem 9: Library Book Recommendation System
+# NLP using TF-IDF and Cosine Similarity
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# ------------------------------------------------------------
-# Library Book Recommendation System
-# NLP: TF-IDF Vectorization + Cosine Similarity
-# ------------------------------------------------------------
+# ------------------------------------------------
+# Step 1: Create a catalogue of 15 books
+# ------------------------------------------------
 
-st.set_page_config(
-    page_title="Library Book Recommendation System",
-    page_icon="📚",
-    layout="wide"
-)
+books = [
+    {
+        "title": "Hands-On Machine Learning",
+        "author": "Aurélien Géron",
+        "genre": "Machine Learning",
+        "description": "Practical machine learning techniques using Python and Scikit-learn."
+    },
+    {
+        "title": "Python Crash Course",
+        "author": "Eric Matthes",
+        "genre": "Python Programming",
+        "description": "A beginner-friendly guide to learning Python through practical projects."
+    },
+    {
+        "title": "Deep Learning",
+        "author": "Ian Goodfellow, Yoshua Bengio, and Aaron Courville",
+        "genre": "Deep Learning",
+        "description": "Explains deep learning concepts, neural networks, and artificial intelligence."
+    },
+    {
+        "title": "Artificial Intelligence: A Modern Approach",
+        "author": "Stuart Russell and Peter Norvig",
+        "genre": "Artificial Intelligence",
+        "description": "An introduction to artificial intelligence, algorithms, and intelligent systems."
+    },
+    {
+        "title": "Data Science from Scratch",
+        "author": "Joel Grus",
+        "genre": "Data Science",
+        "description": "Learn data science concepts, statistics, and practical implementations using Python."
+    },
+    {
+        "title": "Introduction to Machine Learning with Python",
+        "author": "Andreas C. Müller and Sarah Guido",
+        "genre": "Machine Learning",
+        "description": "Practical introduction to machine learning using Python and Scikit-learn."
+    },
+    {
+        "title": "Think Python",
+        "author": "Allen B. Downey",
+        "genre": "Python Programming",
+        "description": "Learn Python programming, problem solving, and computational thinking."
+    },
+    {
+        "title": "The Hundred-Page Machine Learning Book",
+        "author": "Andriy Burkov",
+        "genre": "Machine Learning",
+        "description": "Explains machine learning algorithms, models, and important concepts."
+    },
+    {
+        "title": "Deep Learning with Python",
+        "author": "François Chollet",
+        "genre": "Deep Learning",
+        "description": "Build neural networks and deep learning applications using Python and Keras."
+    },
+    {
+        "title": "Practical Statistics for Data Scientists",
+        "author": "Peter Bruce, Andrew Bruce, and Peter Gedeck",
+        "genre": "Data Science",
+        "description": "Learn statistical methods, data analysis, and practical data science techniques."
+    },
+    {
+        "title": "Automate the Boring Stuff with Python",
+        "author": "Al Sweigart",
+        "genre": "Python Programming",
+        "description": "Use Python programming to automate everyday tasks and improve productivity."
+    },
+    {
+        "title": "Machine Learning Yearning",
+        "author": "Andrew Ng",
+        "genre": "Machine Learning",
+        "description": "Practical guidance for designing, developing, and improving machine learning projects."
+    },
+    {
+        "title": "The Data Warehouse Toolkit",
+        "author": "Ralph Kimball and Margy Ross",
+        "genre": "Data Analytics",
+        "description": "Learn data warehouse design, data modelling, and business analytics."
+    },
+    {
+        "title": "Natural Language Processing with Python",
+        "author": "Steven Bird, Ewan Klein, and Edward Loper",
+        "genre": "Natural Language Processing",
+        "description": "Learn text processing, language analysis, and NLP techniques using Python."
+    },
+    {
+        "title": "Pattern Recognition and Machine Learning",
+        "author": "Christopher M. Bishop",
+        "genre": "Machine Learning",
+        "description": "Explore statistical methods, pattern recognition, and machine learning algorithms."
+    }
+]
 
-# Step 3: Fit TF-IDF on the book catalogue.
+# ------------------------------------------------
+# Step 2: Combine relevant book information
+# ------------------------------------------------
+
+book_text = []
+
+for book in books:
+    text = (
+        book["title"] + " " +
+        book["author"] + " " +
+        book["genre"] + " " +
+        book["description"]
+    )
+    book_text.append(text)
+
+# ------------------------------------------------
+# Step 3: Convert book descriptions into TF-IDF
+# vectors
+# ------------------------------------------------
+
 vectorizer = TfidfVectorizer(
     stop_words="english",
     ngram_range=(1, 2)
 )
+
 tfidf_matrix = vectorizer.fit_transform(book_text)
 
-# ------------------------------------------------------------
-# Streamlit user interface
-# ------------------------------------------------------------
-st.title("📚 Library Book Recommendation System")
-st.write(
-    "Find books that match your interests using Natural Language Processing (NLP). "
-    "The system compares your query with the book catalogue using TF-IDF and cosine similarity."
-)
+# ------------------------------------------------
+# Step 4: Accept reader interests as input
+# ------------------------------------------------
 
-st.subheader("Tell us what you like to read")
-query = st.text_area(
-    "Enter your interests:",
-    value="I enjoy practical books about data science and Python.",
-    placeholder="Example: I want to learn machine learning with Python...",
-    height=100
-)
+query = input(
+    "\nEnter your interests (e.g. I enjoy practical books about data science and Python): "
+).strip()
 
-recommend_button = st.button("Recommend Books", type="primary")
+if not query:
+    query = "I enjoy practical books about data science and Python."
+    print("Using sample query:", query)
 
-if recommend_button:
-    if not query.strip():
-        st.warning("Please enter your reading interests before requesting recommendations.")
-    else:
-        # Step 4: Convert the reader's query into a TF-IDF vector.
-        query_vector = vectorizer.transform([query.strip()])
+# ------------------------------------------------
+# Step 5: Convert reader query into TF-IDF vector
+# ------------------------------------------------
 
-        # Step 5: Calculate cosine similarity against all book vectors.
-        scores = cosine_similarity(query_vector, tfidf_matrix).flatten()
+query_vector = vectorizer.transform([query])
 
-        # Step 6: Select the five books with the highest similarity scores.
-        ranked_indices = sorted(
-            range(len(scores)),
-            key=lambda index: scores[index],
-            reverse=True
-        )[:5]
+# ------------------------------------------------
+# Step 6: Calculate cosine similarity
+# ------------------------------------------------
 
-        st.subheader("Top 5 Recommended Books")
-        st.caption("Ranked by cosine similarity to your interests.")
+similarity_scores = cosine_similarity(
+    query_vector,
+    tfidf_matrix
+).flatten()
 
-        for rank, index in enumerate(ranked_indices, start=1):
-            book = books[index]
-            score = float(scores[index])
+# ------------------------------------------------
+# Step 7: Find the top 5 recommended books
+# ------------------------------------------------
 
-            with st.container(border=True):
-                col_rank, col_details, col_score = st.columns([0.6, 4, 1.2])
-                with col_rank:
-                    st.markdown(f"### #{rank}")
-                with col_details:
-                    st.markdown(f"**{book['title']}**")
-                    st.write(f"**Author:** {book['author']}")
-                    st.write(f"**Genre:** {book['genre']}")
-                    st.write(book["description"])
-                with col_score:
-                    st.metric("Similarity", f"{score * 100:.2f}%")
+top_indices = similarity_scores.argsort()[::-1][:5]
 
-        st.info(
-            "Similarity scores show how closely the catalogue text matches your query. "
-            "They are not ratings of book quality."
-        )
+# ------------------------------------------------
+# Step 8: Display recommendations
+# ------------------------------------------------
 
-# Optional catalogue preview
-with st.expander("View all 15 books in the catalogue"):
-    for book in books:
-        st.markdown(f"**{book['title']}** — {book['author']} ({book['genre']})")
-        st.write(book["description"])
+print("\n==========================================")
+print("       TOP 5 BOOK RECOMMENDATIONS")
+print("==========================================")
+print("Reader's Interest:", query)
+
+for rank, index in enumerate(top_indices, start=1):
+    book = books[index]
+    score = similarity_scores[index]
+
+    print("\nRecommendation:", rank)
+    print("Title:", book["title"])
+    print("Author:", book["author"])
+    print("Genre:", book["genre"])
+    print("Similarity Score: {:.4f} ({:.2f}%)".format(
+        score, score * 100
+    ))
+
+print("\n==========================================")
+print("       RECOMMENDATION COMPLETED")
+print("==========================================")
